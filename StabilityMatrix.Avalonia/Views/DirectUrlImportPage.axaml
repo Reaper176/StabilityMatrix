@@ -123,18 +123,33 @@
                         MaxHeight="280">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <CheckBox
-                                    IsChecked="{Binding IsSelected}"
-                                    VerticalContentAlignment="Center"
-                                    HorizontalContentAlignment="Stretch">
-                                    <StackPanel Spacing="2">
+                                <Grid ColumnDefinitions="Auto,Auto,*" Margin="0,0,0,4">
+                                    <CheckBox
+                                        Grid.Column="0"
+                                        IsChecked="{Binding IsSelected}"
+                                        VerticalAlignment="Center" />
+                                    <CheckBox
+                                        Grid.Column="1"
+                                        Margin="8,0,8,0"
+                                        IsChecked="True"
+                                        IsHitTestVisible="False"
+                                        Foreground="Lime"
+                                        IsVisible="{Binding IsInstalled}"
+                                        VerticalAlignment="Center" />
+                                    <StackPanel Grid.Column="2" Spacing="2">
                                         <TextBlock Text="{Binding DisplayName}" TextWrapping="NoWrap" />
                                         <TextBlock
                                             FontSize="11"
                                             Foreground="{DynamicResource TextFillColorTertiaryBrush}"
                                             Text="{Binding Details}" TextWrapping="NoWrap" />
+                                        <TextBlock
+                                            FontSize="11"
+                                            Foreground="Lime"
+                                            IsVisible="{Binding IsInstalled}"
+                                            Text="Already installed"
+                                            TextWrapping="NoWrap" />
                                     </StackPanel>
-                                </CheckBox>
+                                </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>

@@ -18,6 +18,7 @@ using StabilityMatrix.Core.Attributes;
 using StabilityMatrix.Core.Extensions;
 using StabilityMatrix.Core.Models;
 using StabilityMatrix.Core.Models.Api;
+using StabilityMatrix.Core.Models.Database;
 using StabilityMatrix.Core.Models.FileInterfaces;
 using StabilityMatrix.Core.Services;
 
@@ -37,6 +38,7 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
     private readonly CivitCompatApiManager civitApi;
     private readonly ISettingsManager settingsManager;
     private readonly INotificationService notificationService;
+    private readonly IModelIndexService modelIndexService;
 
     private readonly Queue<CivitAiImportContext> civitAiImportQueue = new();
     private CivitAiImportContext? activeCivitAiContext;
@@ -88,13 +90,15 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
         IModelImportService modelImportService,
         CivitCompatApiManager civitApi,
         ISettingsManager settingsManager,
-        INotificationService notificationService
+        INotificationService notificationService,
+        IModelIndexService modelIndexService
     )
     {
         this.modelImportService = modelImportService;
         this.civitApi = civitApi;
         this.settingsManager = settingsManager;
         this.notificationService = notificationService;
+        this.modelIndexService = modelIndexService;
     }
 
     public override void OnLoaded()
@@ -682,6 +686,7 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
         [ObservableProperty]
         private bool isSelected;
 
+        public bool IsInstalled { get; init; }
         public required CivitModel Model { get; init; }
         public required CivitModelVersion ModelVersion { get; init; }
 
@@ -689,6 +694,38 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
 
         public string Details =>
             $"{Model.Type} • {ModelVersion.BaseModel ?? Resources.Label_UnknownBase} • {Model.Creator?.Username}";
+    }
+
+    private bool IsModelVersionInstalled(CivitModelVersion version)
+    {
+        if (version.Files is not { Count: > 0 })
+        {
+            return false;
+        }
+
+        return version.Files.Any(IsCivitFileInstalled);
+    }
+
+    private bool IsCivitFileInstalled(CivitFile file)
+    {
+        if (file.Type != CivitFileType.Model)
+        {
+            return false;
+        }
+
+        var installedHashes = modelIndexService.ModelIndexBlake3Hashes ?? new HashSet<string>();
+        if (file.Hashes?.BLAKE3 is { Length: > 0 } blake3Hash && installedHashes.Contains(blake3Hash))
+        {
+            return true;
+        }
+
+        var indexedFiles = modelIndexService.ModelIndex?.Values ?? Enumerable.Empty<List<LocalModelFile>>();
+        return indexedFiles
+            .Where(static files => files is not null)
+            .SelectMany(static files => files)
+            .Any(localModel =>
+                string.Equals(localModel.FileName, file.Name, StringComparison.OrdinalIgnoreCase)
+            );
     }
 
     [RelayCommand]
@@ -791,7 +828,7 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
         return true;
     }
 
-    private static List<CivitModelSelectionItem> CreateSelectionItems(IReadOnlyList<CivitModel>? models)
+    private List<CivitModelSelectionItem> CreateSelectionItems(IReadOnlyList<CivitModel>? models)
     {
         var items = new List<CivitModelSelectionItem>();
         if (models is not { Count: > 0 })
@@ -818,6 +855,7 @@ public partial class DirectUrlImportViewModel : TabViewModelBase
                     {
                         Model = model,
                         ModelVersion = version,
+                        IsInstalled = IsModelVersionInstalled(version),
                     }
                 );
             }

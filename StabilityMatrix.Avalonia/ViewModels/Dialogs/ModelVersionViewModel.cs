@@ -23,22 +23,18 @@ public partial class ModelVersionViewModel : DisposableViewModelBase
 
         ModelVersion = modelVersion;
 
-        IsInstalled =
-            ModelVersion.Files?.Any(file =>
-                file is { Type: CivitFileType.Model, Hashes.BLAKE3: not null }
-                && modelIndexService.ModelIndexBlake3Hashes.Contains(file.Hashes.BLAKE3)
-            ) ?? false;
+        IsInstalled = ModelVersion.Files?.Any(file =>
+            CivitFileInstallDetector.IsInstalled(modelIndexService, file)
+        ) ?? false;
 
         EventManager.Instance.ModelIndexChanged += ModelIndexChanged;
     }
 
     public void RefreshInstallStatus()
     {
-        IsInstalled =
-            ModelVersion.Files?.Any(file =>
-                file is { Type: CivitFileType.Model, Hashes.BLAKE3: not null }
-                && modelIndexService.ModelIndexBlake3Hashes.Contains(file.Hashes.BLAKE3)
-            ) ?? false;
+        IsInstalled = ModelVersion.Files?.Any(file =>
+            CivitFileInstallDetector.IsInstalled(modelIndexService, file)
+        ) ?? false;
     }
 
     private void ModelIndexChanged(object? sender, EventArgs e)

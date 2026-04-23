@@ -53,9 +53,7 @@ public partial class CivitFileViewModel : DisposableViewModelBase
         this.vmFactory = vmFactory;
         this.downloadAction = downloadAction;
         CivitFile = civitFile;
-        IsInstalled =
-            CivitFile is { Type: CivitFileType.Model, Hashes.BLAKE3: not null }
-            && modelIndexService.ModelIndexBlake3Hashes.Contains(CivitFile.Hashes.BLAKE3);
+        IsInstalled = CivitFileInstallDetector.IsInstalled(modelIndexService, CivitFile);
         EventManager.Instance.ModelIndexChanged += ModelIndexChanged;
 
         try
@@ -94,9 +92,7 @@ public partial class CivitFileViewModel : DisposableViewModelBase
         // Dispatch to UI thread since the event may be raised from a background thread
         Dispatcher.UIThread.Post(() =>
         {
-            IsInstalled =
-                CivitFile is { Type: CivitFileType.Model, Hashes.BLAKE3: not null }
-                && modelIndexService.ModelIndexBlake3Hashes.Contains(CivitFile.Hashes.BLAKE3);
+            IsInstalled = CivitFileInstallDetector.IsInstalled(modelIndexService, CivitFile);
         });
     }
 

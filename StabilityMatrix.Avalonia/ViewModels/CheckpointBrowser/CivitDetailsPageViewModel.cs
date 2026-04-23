@@ -530,7 +530,9 @@ public partial class CivitDetailsPageViewModel(
         if (result != ContentDialogResult.Primary)
             return;
 
-        foreach (var file in dialogVm.FilesToDownload)
+        var pendingFiles = dialogVm.FilesToDownload.Where(file => !file.IsInstalled).ToList();
+
+        foreach (var file in pendingFiles)
         {
             var sharedFolderPath = GetSharedFolderPath(
                 new DirectoryPath(settingsManager.ModelsDirectory),
@@ -562,7 +564,7 @@ public partial class CivitDetailsPageViewModel(
 
         notificationService.Show(
             Resources.Label_BulkDownloadStarted,
-            string.Format(Resources.Label_BulkDownloadStartedMessage, dialogVm.FilesToDownload.Count),
+            string.Format(Resources.Label_BulkDownloadStartedMessage, pendingFiles.Count),
             NotificationType.Success
         );
     }

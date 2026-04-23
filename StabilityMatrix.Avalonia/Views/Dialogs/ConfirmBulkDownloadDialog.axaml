@@ -49,10 +49,43 @@
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate DataType="{x:Type dialogs:CivitFileDisplayViewModel}">
-                            <TextBlock Margin="8" FontSize="16">
-                                <Run Text="{Binding FileViewModel.CivitFile.Name}" />
-                                <Run Text="(" /><Run Text="{Binding FileViewModel.CivitFile.FullFilesSize}" /><Run Text=")" />
-                            </TextBlock>
+                            <Grid
+                                Margin="8,4"
+                                ColumnDefinitions="Auto,*"
+                                RowDefinitions="Auto,Auto">
+                                <StackPanel
+                                    Grid.Column="0"
+                                    Grid.RowSpan="2"
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding IsInstalled}">
+                                    <CheckBox
+                                        IsChecked="True"
+                                        IsHitTestVisible="False"
+                                        Foreground="Lime" />
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        Foreground="Lime"
+                                        FontSize="11"
+                                        Text="Installed" />
+                                </StackPanel>
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Grid.Row="0"
+                                    FontSize="16">
+                                    <Run Text="{Binding FileName}" />
+                                    <Run Text=" (" />
+                                    <Run Text="{Binding FileSize}" />
+                                    <Run Text=")" />
+                                </TextBlock>
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Grid.Row="1"
+                                    FontSize="12"
+                                    Foreground="Lime"
+                                    IsVisible="{Binding IsInstalled}"
+                                    Text="Already installed" />
+                            </Grid>
                         </DataTemplate>
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>

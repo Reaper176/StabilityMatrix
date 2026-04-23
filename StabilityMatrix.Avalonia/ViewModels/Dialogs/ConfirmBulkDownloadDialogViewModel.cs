@@ -135,9 +135,6 @@ public partial class ConfirmBulkDownloadDialogViewModel(
                 displayVm =>
                 {
                     var fileVm = displayVm.FileViewModel;
-                    if (fileVm.IsInstalled)
-                        return false;
-
                     return fileVm.CivitFile.Type
                         is CivitFileType.Model
                             or CivitFileType.VAE
@@ -170,9 +167,11 @@ public partial class ConfirmBulkDownloadDialogViewModel(
                 .ObserveOn(SynchronizationContext.Current!) // Or AvaloniaScheduler.Instance
                 .Subscribe(filteredFiles =>
                 {
-                    TotalSizeKb = filteredFiles.Sum(f => f.FileViewModel.CivitFile.SizeKb);
+                    var filesPendingDownload = filteredFiles.Where(f => !f.FileViewModel.IsInstalled).ToList();
+
+                    TotalSizeKb = filesPendingDownload.Sum(f => f.FileViewModel.CivitFile.SizeKb);
                     DownloadFollowingFilesText =
-                        $"You are about to download {filteredFiles.Count} files totaling {new FileSizeType(TotalSizeKb)}.";
+                        $"You are about to download {filesPendingDownload.Count} files totaling {new FileSizeType(TotalSizeKb)}.";
                 })
         );
 
